@@ -32,8 +32,41 @@
         Evergreen.templates[<%= template.name.to_json %>] = <%= template.escaped_contents %>;
       <% end %>
       var jasmineEnv = jasmine.getEnv();
-      jasmineEnv.addReporter(new jasmine.TrivialReporter());
+      var trivialReporter = new jasmine.TrivialReporter()
+      jasmineEnv.addReporter(trivialReporter);
       jasmineEnv.addReporter(new Evergreen.ReflectiveReporter());
+
+      // jasmine default is to run 'skipped' tests and just hide results
+      // which is annoying when you're trying to debug an individual test
+      // this goes through and recursively neuters the tests themselves
+      // -NS
+      var params = trivialReporter.getLocation().search.substring(1).split('&');
+      var paramMap = {}
+      for (var i = 0; i < params.length; i++) {
+        var p = params[i].split('=');
+        paramMap[decodeURIComponent(p[0])] = decodeURIComponent(p[1]);
+      }
+      spec_name = paramMap['spec'];
+      if( spec_name ) {
+        runner = jasmineEnv.currentRunner();
+        function neuterSpec(block) {
+          // if this is a 'describe' or an 'it'
+          if( block.queue ) {
+            // if full spec name matches parameter, don't traverse children
+            if( block.getFullName && block.getFullName() == spec_name ) return;
+
+            // otherwise continue down the tree
+            for( var i = 0; i < block.queue.blocks.length; i++ )
+              neuterSpec(block.queue.blocks[i]);
+          }
+
+          // if this is the child of an 'it', neuter the test
+          else {
+            block.func = function() {}
+          }
+        }
+        neuterSpec(runner)
+      }
       jasmineEnv.execute();
     })();
   // ]]>
