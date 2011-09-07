@@ -30,9 +30,11 @@ module Evergreen
     end
 
     def specs
-      Dir.glob(File.join(root, Evergreen.spec_dir, '**/*_spec.{js,coffee}')).map do |path|
+      s = Dir.glob(File.join(root, Evergreen.spec_dir, '**/*_spec.{js,coffee}')).map do |path|
         Spec.new(self, path.gsub(File.join(root, Evergreen.spec_dir, ''), ''))
       end
+      s.reject! { |spec| spec.name != ENV['SPEC'] } if ENV['SPEC']
+      s
     end
 
     def templates
