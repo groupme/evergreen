@@ -9,7 +9,11 @@ module Evergreen
     def serve
       server.boot
       Launchy.open(server.url('/'))
-      sleep
+      puts "Starting server at 127.0.0.1:#{server.port}"
+      trap("INT"){ @kill = true }
+      while !@kill do
+        sleep 1
+      end
     end
 
   protected
@@ -19,4 +23,3 @@ module Evergreen
     end
   end
 end
-
