@@ -29,14 +29,13 @@ module Evergreen
       Spec.new(self, name)
     end
 
-    def get_jammit_files
+    def get_jammit_files(package="application")
       configuration_path = File.join(root,'config','assets.yml')
       return [] unless File.exist?(configuration_path)
 
       yaml = YAML::load(File.open(configuration_path))
 
-      # TODO: include non-application packages
-      javascript_paths = yaml['javascripts']['application']
+      javascript_paths = yaml['javascripts'][package]
 
       all_filenames = javascript_paths.map do |filename|
         Dir[File.join(root,filename)]

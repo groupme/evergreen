@@ -38,7 +38,8 @@ module Evergreen
               @js_spec_helper = suite.get_spec('spec_helper.js')
               @coffee_spec_helper = suite.get_spec('spec_helper.coffee')
 
-              @jammit_files = suite.get_jammit_files
+              package = name.match(/^mobile\//) ? 'mobile' : 'application'
+              @jammit_files = suite.get_jammit_files(package)
               erb :spec
             end
           end
