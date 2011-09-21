@@ -4,7 +4,7 @@
 <script type="text/javascript" src="<%= url("/jasmine/jasmine-html.js") %>"></script>
 <script type="text/javascript" src="<%= url("/resources/evergreen.js") %>"></script>
 <% @jammit_files.each do |file| %>
-  <script type="text/javascript" src="<%= url(file)%>?now=<%= Time.now.to_i%>"></script>
+  <script type="text/javascript" src="<%= file %>?now=<%= Time.now.to_i%>"></script>
 <% end %>
 <script type="text/javascript">
   // <![CDATA[
