@@ -34,8 +34,9 @@ module Evergreen
       return [] unless File.exist?(configuration_path)
 
       yaml = YAML::load(File.open(configuration_path))
-      # TODO: include packages conditionally, rather than lumping them all together
-      javascript_paths = yaml['javascripts'].values.flatten.uniq
+
+      # TODO: include non-application packages
+      javascript_paths = yaml['javascripts']['application']
 
       all_filenames = javascript_paths.map do |filename|
         Dir[File.join(root,filename)]
