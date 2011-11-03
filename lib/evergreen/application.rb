@@ -1,51 +1,53 @@
 module Evergreen
-  def self.application(suite)
-    Rack::Builder.new do
-      instance_eval(&Evergreen.extensions) if Evergreen.extensions
+  class Application < Sinatra::Base
+    set :static, false
+    set :root, File.expand_path('.', File.dirname(__FILE__))
 
-      map "/jasmine" do
-        use Rack::Static, :urls => ["/"], :root => File.expand_path('../jasmine/lib', File.dirname(__FILE__))
-        run lambda { |env| [404, {}, "No such file"]}
+    helpers do
+      def url(path)
+        Evergreen.mounted_at.to_s + path.to_s
       end
 
-      map "/resources" do
-        use Rack::Static, :urls => ["/"], :root => File.expand_path('resources', File.dirname(__FILE__))
-        run lambda { |env| [404, {}, "No such file"]}
+      def render_spec(spec)
+        spec.read if spec
+      rescue StandardError => error
+        erb :_spec_error, :locals => { :error => error }
       end
+    end
 
-      map "/" do
-        app = Class.new(Sinatra::Base).tap do |app|
-          app.reset!
-          app.class_eval do
-            set :static, true
-            set :root, File.expand_path('.', File.dirname(__FILE__))
-            set :public, File.expand_path(File.join(suite.root, Evergreen.public_dir), File.dirname(__FILE__))
+    get '/' do
+      @suite = Evergreen::Suite.new
+      erb :list
+    end
 
-            helpers do
-              def url(path)
-                request.env['SCRIPT_NAME'].to_s + path.to_s
-              end
-            end
+    get '/run/all' do
+      @suite = Evergreen::Suite.new
+      @js_spec_helper = @suite.get_spec('spec_helper.js')
+      @coffee_spec_helper = @suite.get_spec('spec_helper.coffee')
+      erb :run
+    end
 
-            get '/' do
-              @suite = suite
-              erb :list
-            end
+    get '/run/*' do |name|
+      @suite = Evergreen::Suite.new
+      @spec = @suite.get_spec(name)
+      @js_spec_helper = @suite.get_spec('spec_helper.js')
+      @coffee_spec_helper = @suite.get_spec('spec_helper.coffee')
 
-            get '/run/*' do |name|
-              @suite = suite
-              @spec = suite.get_spec(name)
-              @js_spec_helper = suite.get_spec('spec_helper.js')
-              @coffee_spec_helper = suite.get_spec('spec_helper.coffee')
+      package = name.match(/^mobile\//) ? 'mobile' : 'application'
+      @jammit_files = suite.get_jammit_files(package)      
+      erb :run
+    end
 
-              package = name.match(/^mobile\//) ? 'mobile' : 'application'
-              @jammit_files = suite.get_jammit_files(package)
-              erb :spec
-            end
-          end
-        end
-        run app
-      end
+    get "/jasmine/*" do |path|
+      send_file File.expand_path(File.join('../jasmine/lib/jasmine-core', path), File.dirname(__FILE__))
+    end
+
+    get "/resources/*" do |path|
+      send_file File.expand_path(File.join('resources', path), File.dirname(__FILE__))
+    end
+
+    get '/*' do |path|
+      send_file File.join(Evergreen.root, Evergreen.public_dir, path)
     end
   end
 end

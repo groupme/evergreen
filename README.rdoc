@@ -16,6 +16,14 @@ isolation from your application. If you need a tool that tests how your
 JavaScript integrates with your application you should use an integration
 testing framework, such as {Capybara}[http://github.com/jnicklas/capybara].
 
+== Community
+
+Please ask questions on the {mailing
+list}[http://groups.google.com/group/ruby-evergreen].  If you have found a
+reproducible error, please {file it on
+GitHub}[https://github.com/jnicklas/evergreen/issues]. Do not contact the
+maintainers directly.
+
 == Installation
 
 Install as a Ruby gem:
@@ -28,12 +36,12 @@ Evergreen assumes a file and directory structure, place all your javascript
 code inside ./public and all spec files inside ./spec/javascripts. All spec
 files should end in _spec.js. For example:
 
-    public/widget.js
+    public/javascripts/widget.js
     spec/javascripts/widget_spec.js
 
 You can require files from the public directory inside your spec file:
 
-    require('/widget.js')
+    require('/javascripts/widget.js')
 
     describe('a widget', function() {
       ...
@@ -83,10 +91,10 @@ Evergreen will automatically look for and load the following files:
 
 The content of these files could look like this:
 
-    require 'capybara/envjs'
+    require 'capybara-webkit'
 
     Evergreen.configure do |config|
-      config.driver = :envjs
+      config.driver = :webkit
       config.public_dir = 'public_html'
       config.template_dir = 'templates'
       config.spec_dir = 'spec'

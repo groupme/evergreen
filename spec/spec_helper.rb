@@ -7,22 +7,20 @@ require 'rspec'
 require 'capybara/dsl'
 require 'capybara-webkit'
 
+require 'pry'
+
 TEST_DRIVER = :webkit
 
-Evergreen.extensions do
-  map "/awesome" do
-    run lambda { |env| [200, {'Content-Type' => 'text/html'}, "<html><body>Totally awesome</body></html>"]}
-  end
-end
+Evergreen.root = File.expand_path('suite1', File.dirname(__FILE__))
 
-Capybara.app = Evergreen::Suite.new(File.expand_path('suite1', File.dirname(__FILE__))).application
+Capybara.app = Evergreen::Application
 Capybara.default_driver = TEST_DRIVER
 
 module EvergreenMatchers
   class PassSpec # :nodoc:
     def matches?(actual)
       @actual = actual
-      @runner = Evergreen::Runner.new(actual.suite, StringIO.new).spec_runner(@actual)
+      @runner = Evergreen::Runner.new(StringIO.new).spec_runner(@actual)
       @runner.passed?
     end
 
@@ -43,7 +41,9 @@ end
 RSpec.configure do |config|
   config.include EvergreenMatchers
   config.before do
+    Capybara.reset_sessions!
     Evergreen.use_defaults!
+    Evergreen.root = File.expand_path('suite1', File.dirname(__FILE__))
     Evergreen.driver = TEST_DRIVER
   end
 end

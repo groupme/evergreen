@@ -6,19 +6,22 @@
 <% @jammit_files.each do |file| %>
   <script type="text/javascript" src="<%= file %>?now=<%= Time.now.to_i%>"></script>
 <% end %>
+<script type="text/javascript" src="<%= url("/resources/json2.js") %>"></script>
+<script type="text/javascript" src="<%= url("/resources/run.js") %>"></script>
+
 <script type="text/javascript">
   // <![CDATA[
-    <% begin %>
-      <%= @js_spec_helper.read.to_s + ";" if @js_spec_helper.exist? %>
-      <%= @coffee_spec_helper.read.to_s + ";" if @coffee_spec_helper.exist? %>
-      <%= @spec.read %>;
-    <% rescue StandardError => e %>
-      describe("failure", function() {
-        it("should not fail", function() {
-          throw(<%= "#{e.class}: #{e.message}".to_json %>);
-        });
-      });
-    <% end %>
+      <%= render_spec(@coffee_spec_helper) if @coffee_spec_helper.exist? %>;
+      <%= render_spec(@js_spec_helper) if @js_spec_helper.exist? %>;
+      <% if @spec %>
+        <%= render_spec(@spec) %>
+      <% else %>
+        <% @suite.specs.each do |spec| %>
+          describe("<%= spec.name %>", function() {
+            <%= render_spec(spec) %>;
+          });
+        <% end %>
+      <% end %>
   // ]]>
 </script>
 

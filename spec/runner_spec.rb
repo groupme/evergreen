@@ -1,9 +1,8 @@
 require 'spec_helper'
 
 describe Evergreen::Runner do
-  let(:root) { File.expand_path('suite1', File.dirname(__FILE__)) }
-  let(:suite) { Evergreen::Suite.new(root) }
-  let(:runner) { Evergreen::Runner.new(suite, buffer) }
+  let(:suite) { Evergreen::Suite.new }
+  let(:runner) { Evergreen::Runner.new(buffer) }
   let(:buffer) { StringIO.new }
 
   describe '#run' do
